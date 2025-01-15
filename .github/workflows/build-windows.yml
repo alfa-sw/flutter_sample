@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2
@@ -23,12 +23,17 @@ jobs:
       - name: Build Windows Release
         run: flutter build windows --release
 
-      - name: Zip build folder
-        run: |
-          Compress-Archive -Path ".\build\windows\x64\runner\Release\*" -DestinationPath "windows-release.zip" -Force
+      #- name: Zip build folder
+      #  run: |
+      #    Compress-Archive -Path ".\build\windows\x64\runner\Release\*" -DestinationPath "windows-release.zip" -Force
 
+      #- name: Upload Build Artifacts
+      #  uses: actions/upload-artifact@v4
+      #  with:
+      #    name: windows-release
+      #    path: windows-release.zip
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows-release
-          path: windows-release.zip
+          path: .\build\windows\x64\runner\Release\
