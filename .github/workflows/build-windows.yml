@@ -25,7 +25,7 @@ jobs:
 
       - name: Zip build folder
         run: |
-          Compress-Archive -Path .\build\windows\runner\Release\* -DestinationPath windows-release.zip
+          Compress-Archive -Path ".\build\windows\x64\runner\Release" -DestinationPath "windows-release.zip" -Force
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v3
