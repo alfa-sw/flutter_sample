@@ -24,37 +24,39 @@ jobs:
         run: |
           Write-Output "Il percorso di GITHUB_WORKSPACE è $env:MY_WORKSPACE"
       
-      - name: Leggi versione da pubspec.yaml
+      - name: Leggi e Format Versione da pubspec.yaml
         shell: pwsh
         run: |
+          # Percorso al file pubspec.yaml
           $yamlPath = Join-Path $env:MY_WORKSPACE "pubspec.yaml"
 
-          if (-Not (Test-Path $yamlPath)) {
-              Write-Error "Il file pubspec.yaml non è stato trovato in $yamlPath"
-              exit 1
-          }
-
+          # Legge il contenuto del file
           $content = Get-Content $yamlPath -Raw
 
-          $regex = '^\s*version\s*:\s*(.+)$'
-          $match = [regex]::Match($content, $regex, [System.Text.RegularExpressions.RegexOptions]::Multiline)
+          # Estrae la linea della versione
+          $versionLine = $content -split "`n" | Where-Object { $_ -match '^\s*version\s*:\s*' }
 
-          if ($match.Success) {
-              $version = $match.Groups[1].Value.Trim()
-              Write-Output "Versione trovata: $version"
+          # Rimuove la parte 'version:' per ottenere solo il valore
+          $version = $versionLine -replace '^\s*version\s*:\s*', ''
 
-              # (Opzionale) Imposta la versione come variabile di ambiente
-              echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          }
-          else {
-              Write-Error "La chiave 'version' non è stata trovata in pubspec.yaml"
-              exit 1
-          }
+          # Divide la versione in numero di versione e build
+          $versionParts = $version -split '\+'
 
-      - name: Utilizza la versione estratta
+          $mainVersion = $versionParts[0].Trim()    # x.y.z
+          $buildNumber = $versionParts[1].Trim()    # buildV
+
+          # Crea la stringa formattata
+          $formattedVersion = "v$mainVersion`_build$buildNumber"
+
+          Write-Output "Versione formattata: $formattedVersion"
+
+          # Imposta la variabile di ambiente FORMATTED_VERSION
+          echo "FORMATTED_VERSION=$formattedVersion" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Usa la versione formattata
         shell: pwsh
         run: |
-          Write-Output "La versione estratta è: $env:VERSION"
+          Write-Output "La versione formattata è: $env:FORMATTED_VERSION"
 
       # - name: Install Flutter
       #   uses: subosito/flutter-action@v2
