@@ -66,5 +66,5 @@ jobs:
           name: Release ${{ env.APP_FORMATTED_VERSION }}
           draft: false
           prerelease: false
-          files: |
+          artifacts: |
             .\build\windows\x64\runner\Release\alfa-cr-gui_*
