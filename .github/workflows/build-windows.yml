@@ -61,6 +61,7 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
+          allowUpdates: true # test only
           artifactErrorsFailBuild: true
           tag: ${{ env.APP_FORMATTED_VERSION }}
           name: Release ${{ env.APP_FORMATTED_VERSION }}
