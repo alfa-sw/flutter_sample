@@ -58,6 +58,11 @@ jobs:
           name: alfa-cr-gui_${{ env.FORMATTED_VERSION }}
           path: .\build\windows\x64\runner\Release\
       
+      - name: List Release files
+        shell: pwsh
+        run: |
+          Get-ChildItem .\build\windows\x64\runner\Release
+
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
