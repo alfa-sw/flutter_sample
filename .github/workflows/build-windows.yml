@@ -24,67 +24,47 @@ jobs:
         run: |
           Write-Output "Il percorso di GITHUB_WORKSPACE è $env:MY_WORKSPACE"
       
-      - name: Leggi e Format Versione da pubspec.yaml
+      - name: Get app version and build from pubspec.yaml
         shell: pwsh
         run: |
-          # Percorso al file pubspec.yaml
           $yamlPath = Join-Path $env:MY_WORKSPACE "pubspec.yaml"
-
-          # Legge il contenuto del file
           $content = Get-Content $yamlPath -Raw
-
-          # Estrae la linea della versione
           $versionLine = $content -split "`n" | Where-Object { $_ -match '^\s*version\s*:\s*' }
-
-          # Rimuove la parte 'version:' per ottenere solo il valore
           $version = $versionLine -replace '^\s*version\s*:\s*', ''
-
-          # Divide la versione in numero di versione e build
           $versionParts = $version -split '\+'
+          $mainVersion = $versionParts[0].Trim()
+          $buildNumber = $versionParts[1].Trim()
 
-          $mainVersion = $versionParts[0].Trim()    # x.y.z
-          $buildNumber = $versionParts[1].Trim()    # buildV
-
-          # Crea la stringa formattata
           $formattedVersion = "v$mainVersion`_build$buildNumber"
-
-          Write-Output "Versione formattata: $formattedVersion"
-
-          # Imposta la variabile di ambiente FORMATTED_VERSION
-          echo "FORMATTED_VERSION=$formattedVersion" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "APP_FORMATTED_VERSION=$formattedVersion" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Usa la versione formattata
         shell: pwsh
         run: |
           Write-Output "La versione formattata è: $env:FORMATTED_VERSION"
 
-      # - name: Install Flutter
-      #   uses: subosito/flutter-action@v2
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
 
-      # - name: Install dependencies
-      #   run: flutter pub get
+      - name: Install dependencies
+        run: flutter pub get
 
-      # - name: Parse pubspec.yaml
-      #   uses: jonabc/read-yaml@v1
-      #   id: parse_yaml
-      #   with:
-      #     path: pubspec.yaml
-      #     key: version
+      - name: Build Windows Release
+        run: flutter build windows --release
 
-      # - name: Set Version and Build Variables
-      #   shell: pwsh
-      #   run: |
-      #     $versionParts = "${{ steps.parse_yaml.outputs.version }}" -split '\+'
-      #     $version = $versionParts[0]
-      #     $build = $versionParts[1]
-      #     Write-Output "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-      #     Write-Output "BUILD=$build" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-      # - name: Build Windows Release
-      #   run: flutter build windows --release
-
-      # - name: Upload Build Artifacts
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: alfa-cr-gui_v${{ env.VERSION }}_build${{ env.BUILD }}
-      #     path: .\build\windows\x64\runner\Release\
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: alfa-cr-gui_${{ env.FORMATTED_VERSION }}
+          path: .\build\windows\x64\runner\Release\
+      
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifactErrorsFailBuild: true
+          tag: ${{ env.APP_FORMATTED_VERSION }}
+          name: Release ${{ env.APP_FORMATTED_VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            .\build\windows\x64\runner\Release\alfa-cr-gui_*
