@@ -57,11 +57,18 @@ jobs:
         with:
           name: alfa-cr-gui_${{ env.FORMATTED_VERSION }}
           path: .\build\windows\x64\runner\Release\
+
+      - name: Compress Release Files
+        shell: pwsh
+        run: |
+          $releasePath = ".\build\windows\x64\runner\Release\"
+          $zipPath = ".\build\windows\x64\runner\alfa-cr-gui_${{ env.APP_FORMATTED_VERSION }}.zip"
+          Compress-Archive -Path "$releasePath*" -DestinationPath $zipPath -Force
       
       - name: List Release files
         shell: pwsh
         run: |
-          Get-ChildItem .\build\windows\x64\runner\Release
+          Get-ChildItem .\build\windows\x64\runner\
 
       - name: Create Release
         uses: ncipollo/release-action@v1
@@ -73,4 +80,4 @@ jobs:
           draft: false
           prerelease: false
           artifacts: |
-            .\build\windows\x64\runner\Release\alfa-cr-gui_*
+            .\build\windows\x64\runner\alfa-cr-gui_${{ env.APP_FORMATTED_VERSION }}.zip
